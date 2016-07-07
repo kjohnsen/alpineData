@@ -17,8 +17,9 @@ samps$Performer <- droplevels(samps$Performer)
 table(samps$date, samps$Performer)
 run <- samps$Comment.ENA_RUN.
 N <- 2*n
+
 metadata <- data.frame(
-  title=run,
+  Title=run,
   Description=paste("Subset of aligned reads from sample",run),
   BiocVersion=rep("3.4",N),
   Genome=rep("GRCh38",N),
@@ -30,6 +31,9 @@ metadata <- data.frame(
   Coordinate_1_based=rep(TRUE,N),
   DataProvider=rep("GEUVADIS",N),
   Maintainer=rep("michaelisaiahlove@gmail.com",N),
-  RDataClass=rep("GAlignmentPairs",N))
+  RDataClass=rep("GAlignmentPairs",N),
+  Performer=samps$Performer,
+  Date=samps$date,
+  Population=samps$Characteristics.population.)
 
 write.csv(metadata, file="../extdata/metadata.csv", row.names=FALSE)
