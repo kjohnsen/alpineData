@@ -23,7 +23,7 @@ metadata <- data.frame(
   Description=paste("Subset of aligned reads from sample",run),
   BiocVersion=rep("3.4",N),
   Genome=rep("GRCh38",N),
-  SourceType=rep("FASTA",N),
+  SourceType=rep("FASTQ",N),
   SourceUrl=samps$Comment.FASTQ_URI.,
   SourceVersion=rep("1",N),
   Species=rep("Homo sapiens",N),
