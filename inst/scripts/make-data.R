@@ -84,3 +84,6 @@ for (i in seq_len(nrow(metadata))) {
   print(paste(i,round(et),length(gap)))
   saveRDS(gap, file=paste0("out/",metadata$Title[i],".rds"))
 }
+
+# library(rtracklayer)
+# export(gap, con="test.bam", format="bam")
