@@ -33,9 +33,9 @@ if (!file.exists("featurecounts.rda")) {
 }
 
 # select a set of genes with moderately high counts, but not too high
-idx <- rowMeans(fc$counts) > 200 & rowMeans(fc$counts) < 10000
-sum(idx)
-mid.count.genes <- rownames(fc$counts)[idx]
+mid.count.idx <- rowMeans(fc$counts) > 200 & rowMeans(fc$counts) < 10000
+sum(mid.count.idx)
+mid.count.genes <- rownames(fc$counts)[mid.count.idx]
 
 # load an Ensembl TxDb
 library(ensembldb)
@@ -43,29 +43,43 @@ if (!file.exists(basename(gtf.file))) {
   ensDbFromGtf(gtf.file, outfile=basename(gtf.file))
 }
 txdb <- EnsDb(basename(gtf.file))
-txdf <- transcripts(txdb, return.type="DataFrame")
 
 # names of single isoform genes
+txdf <- transcripts(txdb, return.type="DataFrame")
 tab <- table(txdf$gene_id)
-single.iso.genes <- names(tab)[tab == 1]
+one.iso.genes <- names(tab)[tab == 1]
+two.iso.genes <- names(tab)[tab == 2]
+three.iso.genes <- names(tab)[tab == 3]
 
-# subset to 200 genes with moderate counts and
+# subset to genes with moderate counts and
 # possessing a single isoform
 g <- genes(txdb)
 g <- keepSeqlevels(g, sort(c(as.character(1:22),"X","Y","MT")))
-intersect.genes <- intersect(intersect(mid.count.genes, single.iso.genes), names(g))
-length(intersect.genes)
+
+table(mid.count.genes %in% one.iso.genes)
+table(mid.count.genes %in% two.iso.genes)
+table(mid.count.genes %in% three.iso.genes)
+
+intersect.genes <- intersect(names(g), mid.count.genes)
 
 set.seed(1)
-g.sub <- sort(g[sample(intersect.genes,100)])
+idx.genes <- c(sample(intersect(intersect.genes, one.iso.genes),100),
+               sample(intersect(intersect.genes, two.iso.genes),100),
+               sample(intersect(intersect.genes, three.iso.genes),100))
+
+g.sub <- sort(g[idx.genes])
 write(names(g.sub), file="selected.genes.txt")
 
 # extract paired-end reads covering these genes for each BAM
 library(GenomicAlignments)
 for (i in seq_len(nrow(metadata))) {
   pt <- proc.time()
-  gap <- readGAlignmentPairs(bam.files[i],
-                             param=ScanBamParam(which=g.sub))
+  ga <- readGAlignments(bam.files[i], use.names=TRUE,
+                        param=ScanBamParam(which=g.sub,
+                          what=c("flag","mrnm","mpos"),
+                          flag=scanBamFlag(isProperPair=TRUE,
+                            isSecondaryAlignment=FALSE)))
+  gap <- makeGAlignmentPairs(ga)
   et <- unname((proc.time() - pt)[3])
   print(paste(i,round(et),length(gap)))
   saveRDS(gap, file=paste0("out/",metadata$Title[i],".rds"))
