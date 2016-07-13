@@ -1,45 +1,21 @@
-library(speedglm) # this first or AnnotationDbi's select() will be masked
-library(GenomicAlignments)
-library(GenomicFeatures)
-library(BSgenome.Hsapiens.UCSC.hg19)
-library(splines)
-library(Matrix)
-library(devtools)
-library(graph)
-library(RBGL)
-load_all("../../alpine")
+library(ensembldb)
+txdb <- EnsDb(basename(gtf.file))
 
-if (FALSE) {
-  gtf <- "genesStandardTagValue.gtf"
-  system.time({ txdb <- makeTxDbFromGFF(gtf) })
-  saveDb(txdb, file="genesStandard.sqlite")
-}
-
-txdb <- loadDb("genesStandard.sqlite")
-
-## 
-
-samps <- read.delim("samples.txt", stringsAsFactors=FALSE)
-samps$id <- samps$Comment.ENA_RUN.
-bamfiles <- paste0("/n/irizarryfs01/mlove/geuvadis/star/",samps$id,
-                   ".Aligned.sortedByCoord.out.bam")
-names(bamfiles) <- samps$id
+metadata <- read.csv("../extdata/metadata.csv", stringsAsFactors=FALSE)
+bam.files <- paste0("out/",metadata$Title,".bam")
+names(bam.files) <- metadata$Title
 stopifnot(all(file.exists(bamfiles)))
 
-gene.ids <- keys(txdb, keytype="GENEID")
-txdf <- select(txdb, keys=gene.ids,
-               columns=c("TXID","TXNAME","TXCHROM"), keytype="GENEID")
-txdf <- txdf[txdf$GENEID != "",]
+txdf <- transcripts(txdb, return.type="DataFrame")
+tab <- table(txdf$gene_id)
+one.iso.genes <- names(tab)[tab == 1]
+one.iso.txs <- txdf$tx_id[txdf$gene_id %in% one.iso.genes]
 
-tab.tx <- table(txdf$GENEID)
-single.tx.genes <- names(tab.tx[tab.tx == 1])
-single.tx.txs <- txdf$TXNAME[txdf$GENEID %in% single.tx.genes]
+selected.genes <- scan("selected.genes.txt",what="char")
 
 ebt <- exonsBy(txdb, by="tx")
-txname <- txdf$TXNAME[ match(names(ebt), txdf$TXID) ]
-names(ebt) <- txname
+ebt <- ebt[intersect(one.iso.txs, selected.genes)]
 
-ebt <- ebt[single.tx.txs]
 # more than 1 exons
 ebt <- ebt[elementLengths(ebt) > 1]
 
@@ -50,48 +26,16 @@ gene.lengths <- sum(width(ebt))
 summary(gene.lengths)
 ebt <- ebt[gene.lengths > min.bp & gene.lengths < max.bp]
 
-# gene counts
-min.count <- 200
-max.count <- 15000
-load("featureCounts.rda")
-k <- rowMeans(fc$count)
-txdf$count <- numeric(nrow(txdf))
-txdf$count[txdf$GENEID %in% names(k)] <- k[match(txdf$GENEID, names(k))]
-
-mcols(ebt)$count <- txdf$count[match(names(ebt), txdf$TXNAME)]
-summary(mcols(ebt)$count)
-
-ebt <- ebt[ mcols(ebt)$count > min.count & mcols(ebt)$count < max.count ]
-length(ebt)
-
-set.seed(1)
-ebt <- ebt[sample(names(ebt), 100)]
-
-# switch
-extraStuff <- TRUE
-
-if (!extraStuff) {
 models <- list(
-  "GC_str" = list(formula = "count ~ ns(gc,knots=gc.knots,Boundary.knots=gc.bk) +
+  "GC" = list(formula = "count ~ ns(gc,knots=gc.knots,Boundary.knots=gc.bk) +
   ns(relpos,knots=relpos.knots,Boundary.knots=relpos.bk) +
-  GC40.80 + GC40.90 + GC20.80 + GC20.90 +
   gene",
-  offset=c("fraglen"))
-  )
-} else {
-models <- list(
-  "readstart" = list(formula = "count ~ ns(relpos,knots=relpos.knots,Boundary.knots=relpos.bk) +
-  gene",
-  offset=c("fraglen","vlmm")),
+  offset=c("fraglen")),
   "all" = list(formula = "count ~ ns(gc,knots=gc.knots,Boundary.knots=gc.bk) +
   ns(relpos,knots=relpos.knots,Boundary.knots=relpos.bk) +
-  GC40.80 + GC40.90 + GC20.80 + GC20.90 +
   gene",
   offset=c("fraglen","vlmm"))
   )
-}
-
-models
 
 getReadlength(bamfiles)
 
@@ -101,23 +45,29 @@ minsize <- 80
 maxsize <- 350
 readlength <- 75 
 
+# need genome
+
 gene.names <- names(ebt)
 names(gene.names) <- gene.names
 fragtypes <- mclapply(gene.names, function(gene.name) {
-               buildFragtypesFromExons(exons=ebt[[gene.name]], genome=Hsapiens,
-               readlength=readlength, minsize=minsize, maxsize=maxsize, vlmm=extraStuff)
-             })
-fitpar <- mclapply(bamfiles, function(bamfile) {
-            fitModelOverGenes(genes=ebt, bamfile=bamfile, fragtypes=fragtypes,
-            genome=Hsapiens, models=models, readlength=readlength,
-            minsize=minsize, maxsize=maxsize)
-          })
+                        buildFragtypes(exons=ebt[[gene.name]],
+                                       genome=Hsapiens,
+                                       readlength=readlength,
+                                       minsize=minsize,
+                                       maxsize=maxsize)
+                      })
 
-sapply(fitpar, names)
+fitpar <- mclapply(bamfiles, function(bf) {
+                     fitBiasModel(genes=ebt,
+                                  bamfile=bf,
+                                  fragtypes=fragtypes,
+                                  genome=Hsapiens,
+                                  models=models,
+                                  readlength=readlength,
+                                  minsize=minsize,
+                                  maxsize=maxsize)
+                   })
 
-if (!extraStuff) {
-  save(fitpar, file="second_submit/fitpar_gc_str.rda")
-} else {
-  save(fitpar, file="second_submit/fitpar_all.rda")
-}
+save(fitpar, file="fitpar.rda")
+
 
