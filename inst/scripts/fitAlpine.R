@@ -11,12 +11,13 @@ tab <- table(txdf$gene_id)
 one.iso.genes <- names(tab)[tab == 1]
 one.iso.txs <- txdf$tx_id[txdf$gene_id %in% one.iso.genes]
 
+# pre-selected genes
 selected.genes <- scan("selected.genes.txt",what="char")
 
 ebt <- exonsBy(txdb, by="tx")
 ebt <- ebt[intersect(one.iso.txs, selected.genes)]
 
-# more than 1 exons
+# more than 1 exon
 ebt <- ebt[elementLengths(ebt) > 1]
 
 # filter small genes and long genes
@@ -37,15 +38,25 @@ models <- list(
   offset=c("fraglen","vlmm"))
   )
 
+# need to load alpine
+# need genome
+
+# ftp://ftp.ensembl.org/pub/release-84/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz
+
+library(Rsamtools)
+FaFile()
+seqinfo()
+getSeq()
+
+# library(BSgenome.Hsapiens.NCBI.GRCh38)
+
 getReadlength(bamfiles)
 
 options(mc.cores=4)
 
-minsize <- 80
-maxsize <- 350
+minsize <- 100
+maxsize <- 300
 readlength <- 75 
-
-# need genome
 
 gene.names <- names(ebt)
 names(gene.names) <- gene.names
@@ -69,5 +80,4 @@ fitpar <- mclapply(bamfiles, function(bf) {
                    })
 
 save(fitpar, file="fitpar.rda")
-
 
