@@ -34,7 +34,7 @@ ebt <- ebt[gene.lengths > min.bp & gene.lengths < max.bp]
 length(ebt)
 
 set.seed(1)
-ebt <- ebt[sample(length(ebt),8)]
+ebt <- ebt[sample(length(ebt),4)]
 
 models <- list(
   "GC" = list(formula = "count ~ ns(gc,knots=gc.knots,Boundary.knots=gc.bk) +
@@ -47,37 +47,36 @@ models <- list(
   offset=c("fraglen","vlmm"))
   )
 
-library(devtools)
-load_all("../../../alpine")
-
+library(alpine)
 library(BSgenome.Hsapiens.NCBI.GRCh38)
-library(Rsamtools)
+library(Rsamtools) # why doesn't import work?
+library(GenomicAlignments) # why doesn't import work?
 
-options(mc.cores=4)
-
-minsize <- 100
-maxsize <- 300
+minsize <- 100 # better 80
+maxsize <- 250 # better 350
 readlength <- 75 
 
 gene.names <- names(ebt)
 names(gene.names) <- gene.names
-fragtypes <- mclapply(gene.names, function(gene.name) {
-                        buildFragtypes(exons=ebt[[gene.name]],
-                                       genome=Hsapiens,
-                                       readlength=readlength,
-                                       minsize=minsize,
-                                       maxsize=maxsize)
-                      })
+fragtypes <- lapply(gene.names, function(gene.name) {
+                      buildFragtypes(exons=ebt[[gene.name]],
+                                     genome=Hsapiens,
+                                     readlength=readlength,
+                                     minsize=minsize,
+                                     maxsize=maxsize)
+                    })
 
-fitpar <- mclapply(bam.files, function(bf) {
-                     fitBiasModels(genes=ebt,
-                                   bamfile=bf,
-                                   fragtypes=fragtypes,
-                                   genome=Hsapiens,
-                                   models=models,
-                                   readlength=readlength,
-                                   minsize=minsize,
-                                   maxsize=maxsize)
-                   })
+fitpar <- lapply(bam.files, function(bf) {
+                   fitBiasModels(genes=ebt,
+                                 bamfile=bf,
+                                 fragtypes=fragtypes,
+                                 genome=Hsapiens,
+                                 models=models,
+                                 readlength=readlength,
+                                 minsize=minsize,
+                                 maxsize=maxsize)
+                 })
 
 save(fitpar, file="fitpar.rda")
+
+sessionInfo()
