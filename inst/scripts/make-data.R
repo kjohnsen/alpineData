@@ -83,6 +83,7 @@ for (i in seq_len(nrow(metadata))) {
   gap <- makeGAlignmentPairs(ga)
   et <- unname((proc.time() - pt)[3])
   print(paste(i,round(et),length(gap)))
-  saveRDS(gap, file=paste0("out/",metadata$Title[i],".rds"))
   export(gap, con=paste0("out/",metadata$Title[i],"_galignpairs.bam"), format="bam")
+  assign(metadata$Title[i], gap)
+  save(metadata$Title[i], file=paste0("out/",metadata$Title[i],".rda"))
 }
