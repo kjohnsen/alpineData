@@ -6,10 +6,10 @@
 \title{GAlignmentPairs for four samples from the GEUVADIS project}
 \description{ }
 \usage{
-gap <- readRDS("ERR188297.rds")
-gap <- readRDS("ERR188088.rds")
-gap <- readRDS("ERR188204.rds")
-gap <- readRDS("ERR188317.rds")
+data("ERR188297.rda")
+data("ERR188088.rda")
+data("ERR188204.rda")
+data("ERR188317.rda")
 }
 \format{GAlignmentPairs}
 \source{FASTQ files for four RNA-seq samples from the GEUVADIS project
