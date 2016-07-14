@@ -63,7 +63,7 @@ table(mid.count.genes %in% three.iso.genes)
 intersect.genes <- intersect(names(g), mid.count.genes)
 
 set.seed(1)
-idx.genes <- c(sample(intersect(intersect.genes, one.iso.genes),100),
+idx.genes <- c(sample(intersect(intersect.genes, one.iso.genes),200),
                sample(intersect(intersect.genes, two.iso.genes),100),
                sample(intersect(intersect.genes, three.iso.genes),100))
 
@@ -72,6 +72,7 @@ write(names(g.sub), file="selected.genes.txt")
 
 # extract paired-end reads covering these genes for each BAM
 library(GenomicAlignments)
+library(rtracklayer)
 for (i in seq_len(nrow(metadata))) {
   pt <- proc.time()
   ga <- readGAlignments(bam.files[i], use.names=TRUE,
@@ -83,7 +84,5 @@ for (i in seq_len(nrow(metadata))) {
   et <- unname((proc.time() - pt)[3])
   print(paste(i,round(et),length(gap)))
   saveRDS(gap, file=paste0("out/",metadata$Title[i],".rds"))
+  export(gap, con=paste0("out/",metadata$Title[i],"_galignpairs.bam"), format="bam")
 }
-
-# library(rtracklayer)
-# export(gap, con="test.bam", format="bam")
