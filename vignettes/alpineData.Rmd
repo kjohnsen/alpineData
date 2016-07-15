@@ -1,3 +1,8 @@
+<!--
+%\VignetteEngine{knitr}
+%\VignetteIndexEntry{tximport}
+-->
+
 # A very minimal example of exploring the GAlignmentPairs in alpineData
 
 We load the `alpineData` package:
