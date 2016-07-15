@@ -1,25 +1,42 @@
-# download the following FASTQ files to local dir
+Download the following FASTQ files to local dir
+
+```{r}
 metadata <- read.csv("../extdata/metadata.csv", stringsAsFactors=FALSE)
 files <- metadata$SourceUrl
 all.files <- c(files, sub("_1.fastq.gz","_2.fastq.gz",files))
+```
 
-# run HISAT2 to align paired-end reads to genome
-# https://ccb.jhu.edu/software/hisat2/index.shtml
-# with the genome: H. sapiens, Ensembl GRCh38 genome_tran (this is version 84)
-# ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/data/grch38_tran.tar.gz
+Run HISAT2 to align paired-end reads to genome
 
-# hisat2 -x $genome -1 $dir/$f\_1.fastq.gz -2 $dir/$f\_2.fastq.gz -p 10 > out/$f.sam
-# samtools view -@ 4 -b out/$f.sam | samtools sort -@ 4 -O bam -T tmp - > out/$f.bam
-# samtools index out/$f.bam
+<https://ccb.jhu.edu/software/hisat2/index.shtml>
 
-# resulting in BAM files
+With the genome: H. sapiens, Ensembl GRCh38 genome_tran (this is version 84)
+
+<ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/data/grch38_tran.tar.gz>
+
+```
+hisat2 -x $genome -1 $dir/$f\_1.fastq.gz -2 $dir/$f\_2.fastq.gz -p 10 > out/$f.sam
+samtools view -@ 4 -b out/$f.sam | samtools sort -@ 4 -O bam -T tmp - > out/$f.bam
+samtools index out/$f.bam
+```
+
+Resulting in BAM files:
+
+```{r}
 bam.files <- paste0("out/",metadata$Title,".bam")
+```
 
-# download the corresponding Ensembl GTF file 
-# ftp://ftp.ensembl.org/pub/release-84/gtf/homo_sapiens/Homo_sapiens.GRCh38.84.gtf.gz
+Download the corresponding Ensembl GTF file
+
+<ftp://ftp.ensembl.org/pub/release-84/gtf/homo_sapiens/Homo_sapiens.GRCh38.84.gtf.gz>
+
+```{r}
 gtf.file <- "Homo_sapiens.GRCh38.84.gtf"
+```
 
-# count paired-end reads to genes using featureCounts
+Count paired-end reads to genes using featureCounts
+
+```{r}
 library(Rsubread)
 if (!file.exists("featurecounts.rda")) {
   fc <- featureCounts(files=bam.files,
@@ -31,13 +48,19 @@ if (!file.exists("featurecounts.rda")) {
 } else {
   load("featurecounts.rda")
 }
+```
 
-# select a set of genes with moderately high counts, but not too high
+Select a set of genes with moderately high counts, but not too high:
+
+```{r}
 mid.count.idx <- rowMeans(fc$counts) > 200 & rowMeans(fc$counts) < 10000
 sum(mid.count.idx)
 mid.count.genes <- rownames(fc$counts)[mid.count.idx]
+```
 
-# load an Ensembl TxDb
+Load an Ensembl TxDb and select certain genes:
+
+```{r}
 library(ensembldb)
 if (!file.exists(basename(gtf.file))) {
   ensDbFromGtf(gtf.file, outfile=basename(gtf.file))
@@ -69,8 +92,11 @@ idx.genes <- c(sample(intersect(intersect.genes, one.iso.genes),200),
 
 g.sub <- sort(g[idx.genes])
 write(names(g.sub), file="selected.genes.txt")
+```
 
-# extract paired-end reads covering these genes for each BAM
+Extract paired-end reads covering these genes for each BAM:
+
+```{r}
 library(GenomicAlignments)
 library(rtracklayer)
 for (i in seq_len(nrow(metadata))) {
@@ -87,3 +113,4 @@ for (i in seq_len(nrow(metadata))) {
   assign(metadata$Title[i], gap)
   save(metadata$Title[i], file=paste0("out/",metadata$Title[i],".rda"))
 }
+```
