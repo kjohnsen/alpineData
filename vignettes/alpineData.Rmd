@@ -1,6 +1,12 @@
+# A very minimal example of exploring the GAlignmentPairs in alpineData
+
+We load the `alpineData` package:
+
 ```{r}
 library(alpineData)
 ```
+
+This package contains the following four *GAlignmentPairs* objects:
 
 ```{r}
 # replace later with data(...)
@@ -10,6 +16,15 @@ load("../inst/scripts/out/ERR188204.rda")
 load("../inst/scripts/out/ERR188317.rda")
 ```
 
+For details on the source of these files, and on their construction
+see `?ERR188297` and the scripts:
+
+* `inst/scripts/make-metadata.R`
+* `inst/scripts/make-data.Rmd`
+
+We can take a quick look at the paired alignments from one file.
+For example their distribution on the different chromosomes:
+
 ```{r}
 library(GenomicAlignments)
 gap <- ERR188297
@@ -17,14 +32,19 @@ barplot(sort(table(seqnames(gap))[1:25], decreasing=TRUE),
         las=3, main="Distribution of reads")
 ```
 
+Histograms of coverage in regions on chromosome 1:
+
 ```{r}
 gap1 <- gap[seqnames(gap) == "1"]
 starts <- start(first(gap1))
+par(mfrow=c(2,2))
 hist(starts,col="grey")
 hist(starts[starts > 10e6 & starts < 50e6], col="grey", breaks=40)
 hist(starts[starts > 20e6 & starts < 30e6], col="grey", breaks=40)
 hist(starts[starts > 27e6 & starts < 28e6], col="grey", breaks=40)
 ```
+
+The coverage of alignments in a small window on chromosome 1:
 
 ```{r}
 cov <- coverage(gap1[starts > 27.4e6 & starts < 27.425e6])
