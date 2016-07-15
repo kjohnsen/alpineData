@@ -91,7 +91,7 @@ idx.genes <- c(sample(intersect(intersect.genes, one.iso.genes),200),
                sample(intersect(intersect.genes, three.iso.genes),100))
 
 g.sub <- sort(g[idx.genes])
-write(names(g.sub), file="selected.genes.txt")
+write(names(g.sub), file="../extdata/selected.genes.txt")
 ```
 
 Extract paired-end reads covering these genes for each BAM:
@@ -111,6 +111,6 @@ for (i in seq_len(nrow(metadata))) {
   print(paste(i,round(et),length(gap)))
   export(gap, con=paste0("out/",metadata$Title[i],"_galignpairs.bam"), format="bam")
   assign(metadata$Title[i], gap)
-  save(metadata$Title[i], file=paste0("out/",metadata$Title[i],".rda"))
+  save(list=metadata$Title[i], file=paste0("out/",metadata$Title[i],".rda"))
 }
 ```

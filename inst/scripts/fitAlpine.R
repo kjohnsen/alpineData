@@ -13,7 +13,7 @@ tab <- table(txdf$gene_id)
 one.iso.genes <- names(tab)[tab == 1]
 
 # pre-selected genes
-selected.genes <- scan("selected.genes.txt",what="char")
+selected.genes <- scan("../extdata/selected.genes.txt",what="char")
 
 one.iso.txs <- txdf$tx_id[txdf$gene_id %in% intersect(one.iso.genes, selected.genes)]
 length(one.iso.txs)
@@ -58,24 +58,26 @@ readlength <- 75
 
 gene.names <- names(ebt)
 names(gene.names) <- gene.names
-fragtypes <- lapply(gene.names, function(gene.name) {
-                      buildFragtypes(exons=ebt[[gene.name]],
-                                     genome=Hsapiens,
-                                     readlength=readlength,
-                                     minsize=minsize,
-                                     maxsize=maxsize)
-                    })
+fragtypes <- list()
+for (gene.name in gene.names) {
+  fragtypes[[gene.name]] <- buildFragtypes(exons=ebt[[gene.name]],
+                                           genome=Hsapiens,
+                                           readlength=readlength,
+                                           minsize=minsize,
+                                           maxsize=maxsize)
+}
 
-fitpar <- lapply(bam.files, function(bf) {
-                   fitBiasModels(genes=ebt,
-                                 bamfile=bf,
-                                 fragtypes=fragtypes,
-                                 genome=Hsapiens,
-                                 models=models,
-                                 readlength=readlength,
-                                 minsize=minsize,
-                                 maxsize=maxsize)
-                 })
+fitpar <- list()
+for (bf in bam.files) {
+  fitpar[[bf]] <- fitBiasModels(genes=ebt,
+                                bamfile=bf,
+                                fragtypes=fragtypes,
+                                genome=Hsapiens,
+                                models=models,
+                                readlength=readlength,
+                                minsize=minsize,
+                                maxsize=maxsize)
+}
 
 save(fitpar, file="fitpar.rda")
 
