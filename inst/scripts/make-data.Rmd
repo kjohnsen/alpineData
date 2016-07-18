@@ -15,14 +15,15 @@ With the genome: H. sapiens, Ensembl GRCh38 genome_tran (this is version 84)
 <ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/data/grch38_tran.tar.gz>
 
 ```
-hisat2 -x $genome -1 $dir/$f\_1.fastq.gz -2 $dir/$f\_2.fastq.gz -p 10 > out/$f.sam
+hisat2 -x $genome -1 $dir/$f\_1.fastq.gz -2 $dir/$f\_2.fastq.gz -p 10 -k 1 > out/$f.sam
 samtools view -@ 4 -b out/$f.sam | samtools sort -@ 4 -O bam -T tmp - > out/$f.bam
 samtools index out/$f.bam
 ```
 
-Resulting in BAM files:
+Resulting in SAM and BAM files:
 
 ```{r}
+sam.files <- paste0("out/",metadata$Title,".sam")
 bam.files <- paste0("out/",metadata$Title,".bam")
 ```
 
@@ -39,7 +40,7 @@ Count paired-end reads to genes using featureCounts
 ```{r}
 library(Rsubread)
 if (!file.exists("featurecounts.rda")) {
-  fc <- featureCounts(files=bam.files,
+  fc <- featureCounts(files=sam.files,
                       annot.ext=gtf.file,
                       isGTFAnnotationFile=TRUE,
                       isPairedEnd=TRUE,
