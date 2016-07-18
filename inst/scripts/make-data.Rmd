@@ -51,10 +51,11 @@ if (!file.exists("featurecounts.rda")) {
 }
 ```
 
-Select a set of genes with moderately high counts, but not too high:
+Select a set of genes with moderate counts, not too high so that we
+keep the size of the output files small.
 
 ```{r}
-mid.count.idx <- rowMeans(fc$counts) > 200 & rowMeans(fc$counts) < 10000
+mid.count.idx <- rowMeans(fc$counts) > 200 & rowMeans(fc$counts) < 2000
 sum(mid.count.idx)
 mid.count.genes <- rownames(fc$counts)[mid.count.idx]
 ```
@@ -87,9 +88,9 @@ table(mid.count.genes %in% three.iso.genes)
 intersect.genes <- intersect(names(g), mid.count.genes)
 
 set.seed(1)
-idx.genes <- c(sample(intersect(intersect.genes, one.iso.genes),200),
-               sample(intersect(intersect.genes, two.iso.genes),100),
-               sample(intersect(intersect.genes, three.iso.genes),100))
+idx.genes <- c(sample(intersect(intersect.genes, one.iso.genes),30),
+               sample(intersect(intersect.genes, two.iso.genes),10),
+               sample(intersect(intersect.genes, three.iso.genes),10))
 
 g.sub <- sort(g[idx.genes])
 write(names(g.sub), file="../extdata/selected.genes.txt")
@@ -101,6 +102,7 @@ Extract paired-end reads covering these genes for each BAM:
 library(GenomicAlignments)
 library(rtracklayer)
 for (i in seq_len(nrow(metadata))) {
+  # read in
   pt <- proc.time()
   ga <- readGAlignments(bam.files[i], use.names=TRUE,
                         param=ScanBamParam(which=g.sub,
@@ -110,7 +112,12 @@ for (i in seq_len(nrow(metadata))) {
   gap <- makeGAlignmentPairs(ga)
   et <- unname((proc.time() - pt)[3])
   print(paste(i,round(et),length(gap)))
+  # export to BAM
+  pt <- proc.time()
   export(gap, con=paste0("out/",metadata$Title[i],"_galignpairs.bam"), format="bam")
+  et <- unname((proc.time() - pt)[3])
+  print(paste(i,round(et),length(gap)))
+  # save as .rda
   assign(metadata$Title[i], gap)
   save(list=metadata$Title[i], file=paste0("out/",metadata$Title[i],".rda"))
 }
