@@ -1,5 +1,6 @@
 \name{ERR188297}
 \docType{data}
+\alias{ERR188297}
 \alias{ERR188088}
 \alias{ERR188204}
 \alias{ERR188317}
