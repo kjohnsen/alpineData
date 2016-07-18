@@ -37,22 +37,12 @@ barplot(sort(table(seqnames(gap))[1:25], decreasing=TRUE),
         las=3, main="Distribution of reads")
 ```
 
-Histograms of coverage in regions on chromosome 1:
+Histograms of read starts for the first read on chromosome 1: 
 
 ```{r}
 gap1 <- gap[seqnames(gap) == "1"]
 starts <- start(first(gap1))
 par(mfrow=c(2,2))
 hist(starts,col="grey")
-hist(starts[starts > 10e6 & starts < 50e6], col="grey", breaks=40)
-hist(starts[starts > 20e6 & starts < 30e6], col="grey", breaks=40)
-hist(starts[starts > 27e6 & starts < 28e6], col="grey", breaks=40)
 ```
 
-The coverage of alignments in a small window on chromosome 1:
-
-```{r}
-cov <- coverage(gap1[starts > 27.4e6 & starts < 27.425e6])
-num.cov <- as.numeric(cov[GRanges("1", IRanges(27.4e6, 27.425e6))][[1]])
-plot(num.cov, cex=.1)
-```
