@@ -30,8 +30,10 @@ metadata <- data.frame(
   TaxonomyId=rep("9606",N),
   Coordinate_1_based=rep(TRUE,N),
   DataProvider=rep("GEUVADIS",N),
-  Maintainer=rep("michaelisaiahlove@gmail.com",N),
+  Maintainer=rep("Michael Love <michaelisaiahlove@gmail.com>",N),
   RDataClass=rep("GAlignmentPairs",N),
+  DispatchClass=rep("Rda",N),
+  ResourceName=paste0(run, ".rda"),
   Performer=samps$Performer,
   Date=samps$date,
   Population=samps$Characteristics.population.)

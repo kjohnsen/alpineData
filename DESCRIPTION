@@ -1,6 +1,6 @@
 Package: alpineData
 Title: Data for the alpine package vignette
-Version: 0.0.1
+Version: 0.0.2
 Author: Michael Love
 Maintainer: Michael Love <michaelisaiahlove@gmail.com>
 Description: A small subset of paired-end RNA-seq
