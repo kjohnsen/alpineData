@@ -1,5 +1,7 @@
-\name{ERR188297}
+\name{alpineData}
 \docType{data}
+\alias{alpineData}
+\alias{alpineData-package}
 \alias{ERR188297}
 \alias{ERR188088}
 \alias{ERR188204}
@@ -11,10 +13,10 @@
   according to the steps presented in \code{inst/scripts/make-data.R}
 }
 \usage{
-data("ERR188297.rda")
-data("ERR188088.rda")
-data("ERR188204.rda")
-data("ERR188317.rda")
+ERR188297(metadata=FALSE)
+ERR188088(metadata=FALSE)
+ERR188204(metadata=FALSE)
+ERR188317(metadata=FALSE)
 }
 \format{GAlignmentPairs}
 \source{FASTQ files for four RNA-seq samples from the GEUVADIS project.}
