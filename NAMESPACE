@@ -1,3 +1,5 @@
 import(ExperimentHub)
 import(ExperimentHubData)
 importFrom(utils, read.csv)
+importFrom(AnnotationHub, query)
+
