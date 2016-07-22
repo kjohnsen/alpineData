@@ -3,26 +3,34 @@
 %\VignetteIndexEntry{tximport}
 -->
 
-# A very minimal example of exploring the GAlignmentPairs in alpineData
+# Exploring the GAlignmentPairs in alpineData
 
-We load the `alpineData` package:
+We first load the `alpineData` package:
 
 ```{r}
 library(alpineData)
 ```
 
-This package contains the following four *GAlignmentPairs* objects:
+This package contains the following four *GAlignmentPairs* objects.
+We can access these directly with named functions:
 
 ```{r}
-# replace later with data(...)
-load("../inst/scripts/out/ERR188297.rda")
-load("../inst/scripts/out/ERR188088.rda")
-load("../inst/scripts/out/ERR188204.rda")
-load("../inst/scripts/out/ERR188317.rda")
+ERR188297()
+ERR188088()
+ERR188204()
+ERR188317()
+```
+
+Or we can access them using the *ExperimentHub* interface:
+
+```{r}
+eh <- ExperimentHub()
+query(eh, "ERR188")
+eh[["EH166"]]
 ```
 
 For details on the source of these files, and on their construction
-see `?ERR188297` and the scripts:
+see `?alpineData` and the scripts:
 
 * `inst/scripts/make-metadata.R`
 * `inst/scripts/make-data.Rmd`
@@ -32,7 +40,7 @@ For example their distribution on the different chromosomes:
 
 ```{r}
 library(GenomicAlignments)
-gap <- ERR188297
+gap <- ERR188297()
 barplot(sort(table(seqnames(gap))[1:25], decreasing=TRUE),
         las=3, main="Distribution of reads")
 ```
