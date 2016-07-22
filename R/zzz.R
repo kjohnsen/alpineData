@@ -1,12 +1,11 @@
 .onLoad <- function(libname, pkgname) {
-  # this code copied from 'curatedMetagenomicData'
   objs <- read.csv(system.file("extdata", "metadata.csv",
                                 package="alpineData"),
                     stringsAsFactors=FALSE)$Title
   if (!length(objs))
     stop("no objects found")
-  
-  ## Functions to load objs by name:
+ 
+  ## Functions to load objects by name:
   ns <- asNamespace(pkgname)
   sapply(objs,
          function(xx) {
