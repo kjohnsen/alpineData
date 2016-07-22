@@ -25,6 +25,10 @@ ERR188317(metadata=FALSE)
     loads the data.
   }
 }
+\examples{
+  ERR188297()
+}
+\value{ These accessor functions return GAlignmentPairs objects }
 \format{GAlignmentPairs}
 \source{FASTQ files for four RNA-seq samples from the GEUVADIS project.}
 \references{
