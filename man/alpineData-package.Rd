@@ -18,6 +18,13 @@ ERR188088(metadata=FALSE)
 ERR188204(metadata=FALSE)
 ERR188317(metadata=FALSE)
 }
+\arguments{
+  \item{metadata}{
+    \code{logical} value indicating whether metadata only should be returned
+    or if the resource should be loaded. Default behavior(metadata=FALSE) 
+    loads the data.
+  }
+}
 \format{GAlignmentPairs}
 \source{FASTQ files for four RNA-seq samples from the GEUVADIS project.}
 \references{
